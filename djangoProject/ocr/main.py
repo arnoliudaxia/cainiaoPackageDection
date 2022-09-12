@@ -92,5 +92,6 @@ def ocrTarget(image,packageLookingFor,isFlip,isVertical):
 
 
     image=cv.addWeighted(image, 1, blk, 0.5, 1)
+    image=cv.resize(image,(540,360))
     image=cv.imencode(".jpg", image)[1]
     return str(base64.b64encode(image))[2:-1]
