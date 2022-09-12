@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <title>菜鸟包裹识别</title>
+    <script src="https://code.jquery.com/jquery-3.4.0.min.js"
+            integrity="sha256-BJeo0qm959uMBGb65z40ejJYGSgR7REI4+CW1fNKwOg=" crossorigin="anonymous"></script>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.1/css/bootstrap.min.css" rel="stylesheet">
+
+</head>
+
+<body>
+{% csrf_token %}
+<div class="container">
+    <div class="row">
+        <div class="input-group mb-3">
+            <span class="input-group-text" id="basic-addon1">最后四位</span>
+            <input type="text" id="packageNumber" class="form-control" placeholder="取货码" aria-label="Username"
+                   aria-describedby="basic-addon1">
+        </div>
+        <input id="img" name="img" type="file" accept="image/bmp, image/jpeg, image/png, image/jpg"/>
+        <button id="submit" type="submit" onclick="post()" class="btn btn-primary">识别</button>
+    </div>
+    <br><br>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="detectFlip">
+        <label class="form-check-label" for="flexCheckDefault">
+            检测倒立标签
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="checkbox" value="" id="detectVertical">
+        <label class="form-check-label" for="flexCheckDefault">
+            检测纵向标签
+        </label>
+    </div>
+    <div id="imgarea">
+        <img id="resultimg" src="" alt="" style="width: 90%;height: auto">
+    </div>
+</div>
+</body>
+<script>
+    function post() {
+        if ($('#packageNumber').val()===""){
+            alert("你没有填写包裹码！");
+            return;
+        }
+
+        var reader = new FileReader();
+        reader.readAsDataURL(document.getElementById('img').files[0]);
+        reader.onload = function (e) {
+            var data = e.target.result;
+            $.ajax({
+                type: "POST",
+                url: "/filere", //之前配的接口，图片不能太大
+                contentType: "application/json; charset=utf-8",
+                data: JSON.stringify({
+                    img: data.replace(/^data:image\/\w+;base64,/, ""),
+                    package: $('#packageNumber').val(),
+                    isFlip: $('#detectFlip').is(':checked'),
+                    isVertical: $('#detectVertical').is(':checked')
+
+                }),
+                dataType: "image/jpeg",
+                success: function (message) {
+                    console.log("ocr 完成");
+                    console.log(message);
+                },
+                error: function (message) {
+                    console.log(message);
+                    {#$("#resultimg").attr("src", message["responseText"]);#}
+                    $("#imgarea").append(`<img src="${message["responseText"]}" alt="" style="width: 90%;height: auto">`)
+                    {#$("#resultimg").src(message);#}
+                }
+            });
+        }
+    }
+</script>
+
+</html>
